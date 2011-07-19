@@ -30,7 +30,7 @@
       <id>sakai-maven</id>
       <name>Sakai Maven Repo</name>
       <layout>default</layout>
-      <url>http://source.sakaiproject.org/maven2</url>
+      <url>http://svn.media.berkeley.edu/nexus/content/repositories/myberkeley-production</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>

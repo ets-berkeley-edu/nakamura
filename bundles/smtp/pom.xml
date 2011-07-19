@@ -147,7 +147,7 @@
     <repository>
       <id>Sakai Maven2 Repo</id>
       <name>Sakai Maven2 Repo</name>
-      <url>http://source.sakaiproject.org/maven2</url>
+      <url>http://svn.media.berkeley.edu/nexus/content/repositories/myberkeley-production</url>
       <releases>
         <enabled>true</enabled>
       </releases>
