@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
-    <scr:component enabled="true" immediate="true" name="org.sakaiproject.nakamura.jetty.OSGiGZipFilter" activate="activate" deactivate="deactivate">
+    <scr:component enabled="false" immediate="true" name="org.sakaiproject.nakamura.jetty.OSGiGZipFilter" activate="activate" deactivate="deactivate">
         <implementation class="org.sakaiproject.nakamura.jetty.OSGiGZipFilter"/>
         <property name="service.description" type="String" value="Nakamura GZip Filter"/>
         <property name="service.vendor" type="String" value="The Sakai Foundation"/>
