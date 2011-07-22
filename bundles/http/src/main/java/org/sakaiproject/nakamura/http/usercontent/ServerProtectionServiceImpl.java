@@ -109,8 +109,11 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   @Property(boolValue=false)
   private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
-  @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL })
-  private static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
+  @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL },
+      description = "The protocol, host, and port for streaming untrusted content")
+  static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
+  @Property(description = "The protocol, host, and port to which requests for untrusted content should be redirected; defaults to untrusted.contenturl")
+  static final String UNTRUSTED_REDIRECT_HOST = "untrusted.redirect.host";
   @Property(value = { "/dev", "/devwidgets", "/system", "/logout" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
   @Property(value = { "/", 
@@ -159,9 +162,16 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    */
   private Set<String> safeToStreamExactPaths;
   /**
-   * The Stub of the URL used to deliver content bodies.
+   * The Stub of the URL used to deliver content bodies. This is the final
+   * protocol, host, and port of the redirected request as delivered to
+   * the application.
    */
   private String contentUrl;
+  /**
+   * The protocol, host, and port to redirect to for content bodies. If empty, the
+   * content URL is used to construct the redirect URL.
+   */
+  private String contentRedirectHost;
   /**
    * Array of keys created from the secret, indexed by the second digit of the timestamp
    */
@@ -210,6 +220,8 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
         properties.get(TRUSTED_EXACT_PATHS_CONF), DEFAULT_TRUSTED_EXACT_PATHS));
     contentUrl = OsgiUtil.toString(properties.get(UNTRUSTED_CONTENTURL_CONF),
         DEFAULT_UNTRUSTED_CONTENT_URL);
+    contentRedirectHost = OsgiUtil.toString(properties.get(UNTRUSTED_REDIRECT_HOST),
+        "");
     postWhiteList = OsgiUtil.toStringArray(
         properties.get(WHITELIST_POST_PATHS_CONF), DEFAULT_WHITELIST_POST_PATHS);
     safeForAnonToPostPaths = OsgiUtil.toStringArray(
@@ -229,6 +241,7 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     LOGGER.info("Trusted Stream Resources {} ",safeToStreamExactPaths);
     LOGGER.info("POST Whitelist {} ",postWhiteList);
     LOGGER.info("Content Host {} ",contentUrl);
+    LOGGER.info("Content Redirect Host {} ",contentRedirectHost);
     LOGGER.info("Content Shared Secret [{}] ",transferSharedSecret);
 
     transferKeys = new Key[10];
@@ -384,22 +397,29 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
     String url = requestURL.toString();
     // replace the protocol and host with the CDN host.
     int pathStart = requestURL.indexOf("/", requestURL.indexOf(":") + 3);
-    url = contentUrl + url.substring(pathStart);
+    url = getTransferUrl(request, url.substring(pathStart));
     // send via the session establisher
     LOGGER.debug("Sending redirect for {} {} ",request.getMethod(), url);
-    response.sendRedirect(getTransferUrl(request, url));
+    response.sendRedirect(url);
   }
 
   /**
    * @param request
-   * @param finalUrl
+   * @param urlPath
    * @return
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
    * @throws IllegalStateException
    * @throws UnsupportedEncodingException
    */
-  private String getTransferUrl(HttpServletRequest request, String finalUrl) {
+  private String getTransferUrl(HttpServletRequest request, String urlPath) {
+    final String finalUrl = contentUrl + urlPath;
+    String redirectUrl;
+    if (StringUtils.isBlank(contentRedirectHost)) {
+      redirectUrl = finalUrl;
+    } else {
+      redirectUrl = contentRedirectHost + urlPath;
+    }
     // only transfer authN from a trusted safe host
     if (isSafeHost(request)) {
       String userId = request.getRemoteUser();
@@ -419,13 +439,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
           if ( finalUrl.indexOf('?') >  0) {
             spacer = "&";
           }
-          return finalUrl + spacer + HMAC_PARAM + "=" + hmac;
+          redirectUrl = redirectUrl + spacer + HMAC_PARAM + "=" + hmac;
         } catch (Exception e) {
           LOGGER.warn(e.getMessage(), e);
         }
       }
     }
-    return finalUrl;
+    return redirectUrl;
   }
 
   public String getTransferUserId(HttpServletRequest request) {
@@ -462,8 +482,13 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
             m.update(message.getBytes("UTF-8"));
             String testHmac = Base64.encodeBase64URLSafeString(m.doFinal());
             if (testHmac.equals(requestHmac)) {
+              LOGGER.debug("Successfully extracted requestUserId {} from HMAC", requestUserId);
               return requestUserId;
+            } else {
+              LOGGER.info("Mismatched HMAC. Request HMAC was '{}'", hmac);
             }
+          } else {
+            LOGGER.info("Out of date HMAC. Request TsL = {}, current time = {}", requestTs, String.valueOf(System.currentTimeMillis()));
           }
         } catch (Exception e) {
           LOGGER.warn(e.getMessage());
