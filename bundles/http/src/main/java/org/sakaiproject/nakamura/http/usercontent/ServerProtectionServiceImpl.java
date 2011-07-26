@@ -109,10 +109,9 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
 
   @Property(boolValue=false)
   private static final String DISABLE_XSS_PROTECTION_FOR_UI_DEV = "disable.protection.for.dev.mode";
-  @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL },
-      description = "The protocol, host, and port for streaming untrusted content")
+  @Property(value = { DEFAULT_UNTRUSTED_CONTENT_URL } )
   static final String UNTRUSTED_CONTENTURL_CONF = "untrusted.contenturl";
-  @Property(description = "The protocol, host, and port to which requests for untrusted content should be redirected; defaults to untrusted.contenturl")
+  @Property
   static final String UNTRUSTED_REDIRECT_HOST = "untrusted.redirect.host";
   @Property(value = { "/dev", "/devwidgets", "/system", "/logout" })
   private static final String TRUSTED_PATHS_CONF = "trusted.paths";
@@ -162,14 +161,16 @@ public class ServerProtectionServiceImpl implements ServerProtectionService {
    */
   private Set<String> safeToStreamExactPaths;
   /**
-   * The Stub of the URL used to deliver content bodies. This is the final
-   * protocol, host, and port of the redirected request as delivered to
-   * the application.
+   * The protocol, domain, and port used to deliver untrusted content bodies, as
+   * specified in the URL of the internal request as seen by the application, after
+   * any proxying.
    */
   private String contentUrl;
   /**
-   * The protocol, host, and port to redirect to for content bodies. If empty, the
-   * content URL is used to construct the redirect URL.
+   * The protocol, domain, and port to which streaming requests for untrusted content
+   * should be redirected. This is the host of the external redirect URL as seen by
+   * the browser. This is only needed if a front-end proxies to the application from
+   * a different protocol, domain, or port. If not specified, the contentUrl is used.
    */
   private String contentRedirectHost;
   /**
