@@ -117,10 +117,6 @@ public interface FilesConstants {
    * The name of the property that holds the filename.
    */
   public static final String POOLED_CONTENT_FILENAME = "sakai:pooled-content-file-name";
-  /**
-   * The name of the property that holds the custom mimetype.
-   */
-  public static final String POOLED_CONTENT_CUSTOM_MIMETYPE = "sakai:custom-mimetype";
 
   /**
    * The name of the property that holds the mimetype
