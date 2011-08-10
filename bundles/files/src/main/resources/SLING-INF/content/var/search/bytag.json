@@ -5,6 +5,7 @@
       "fq": "resourceType:${_resourceType}${_type}${_categoryAnd}",
       "sort": "${sortOn} ${sortOrder}"
   },
+  "_categoryAnd": "",
   "sortOn": "score",
   "sortOrder": "desc",
   "sakai:title": "By Tag",
