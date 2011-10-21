@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.0.2</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>org.sakaiproject.nakamura.user</artifactId>
   <packaging>bundle</packaging>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.0.2</version>
   <name>Sakai Nakamura :: User Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the user area as
     required by Sakai.</description>
@@ -75,31 +75,29 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.1.0-1.1-SNAPSHOT</version>
+      <version>2.1.0-1.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -195,7 +193,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.0.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

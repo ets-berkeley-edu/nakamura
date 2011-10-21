@@ -18,9 +18,9 @@
      <all-permissions/>
   </security>
   <resources>
-    <j2se version="1.5+" java-vm-args=" -Xmx512m -XX:MaxPermSize=256m -server " />
+    <j2se version="1.5+" java-vm-args=" -Xmx512m -XX:MaxPermSize=256m " />
 
-    <jar href="lib/org.sakaiproject.nakamura.app-1.0.jar" main="true"/>
+    <jar href="lib/org.sakaiproject.nakamura.app-1.0.2.jar" main="true"/>
 
   </resources>
   <application-desc main-class="org.sakaiproject.nakamura.app.LaunchNakamura" />

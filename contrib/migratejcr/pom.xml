@@ -16,11 +16,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.0.2</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.migratejcr</artifactId>
   <packaging>bundle</packaging>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.0.2</version>
   <name>Sakai Nakamura: Migrate JCR</name>
   <description>Moves data from Jackrabbit JCR to sparse content storage.</description>
   <build>
@@ -91,7 +91,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>1.1-SNAPSHOT</version>
+      <version>1.0.2</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
