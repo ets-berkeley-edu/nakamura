@@ -58,7 +58,7 @@ import javax.servlet.http.HttpServletResponse;
  * The ClusterTrackingService, maintains an entry for the active server and tracks active
  * users with a cluster replicated shared cache.
  */
-@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true)
+@Component(description = "Cluster tracking, tracks app servers and users within the cluster", label = "Cluster Tracking", immediate = true, metatype=true)
 @Service({ ClusterTrackingService.class, Runnable.class })
 @Properties(value = {
     @Property(name = Scheduler.PROPERTY_SCHEDULER_CONCURRENT, boolValue = false),

@@ -108,6 +108,7 @@ public class TagIndexingHandler implements IndexingHandler {
             doc.addField(PROPERTIES.get(key), value);
           }
         }
+        doc.setField(_DOC_SOURCE_OBJECT, content);
         documents.add(doc);
       } catch (StorageClientException e) {
         LOGGER.error(e.getMessage(), e);

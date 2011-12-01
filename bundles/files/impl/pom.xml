@@ -36,7 +36,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <Export-Package/>
+            <Bundle-Activator>org.sakaiproject.nakamura.files.Activator</Bundle-Activator>
             <Private-Package> org.sakaiproject.nakamura.files.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content;overwriteProperties:=true;uninstall:=false</Sling-Initial-Content>
           </instructions>

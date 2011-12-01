@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_TAG;
+
 import com.google.common.collect.ImmutableMap;
 
 import org.apache.felix.scr.annotations.Properties;
@@ -40,10 +42,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
 import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.content.Content;
+import org.sakaiproject.nakamura.api.lite.content.ContentManager;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
-import org.sakaiproject.nakamura.api.resource.lite.SparseContentResource;
-import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchServiceFactory;
+import org.sakaiproject.nakamura.api.search.solr.Query;
 import org.sakaiproject.nakamura.api.search.solr.Result;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchException;
@@ -51,8 +53,7 @@ import org.sakaiproject.nakamura.api.search.solr.SolrSearchResultSet;
 import org.sakaiproject.nakamura.api.search.solr.SolrSearchServiceFactory;
 import org.sakaiproject.nakamura.files.search.LiteFileSearchBatchResultProcessor;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,9 +61,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -100,7 +98,6 @@ response = {
 }
 )
 public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
-  private static final Logger LOG = LoggerFactory.getLogger(DirectoryTagFeedServlet.class);
   private static final long serialVersionUID = -8815248520601921760L;
 
   @Reference
@@ -131,7 +128,6 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     boolean tidy = false;
     int depth = 0;
     String[] selectors = request.getRequestPathInfo().getSelectors();
-    String selector = null;
     for (String sel : selectors) {
       if ("tidy".equals(sel)) {
         tidy = true;
@@ -143,8 +139,6 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
         try { d = Integer.parseInt(sel); } catch (NumberFormatException e) {}
         if (d != null) {
           depth = d;
-        } else {
-          selector = sel;
         }
       }
     }
@@ -155,46 +149,50 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     Resource directoryResource = request.getResource();
     try {
       write.object();
-      if (directoryResource instanceof SparseContentResource) {
-        Content contentDirectory = directoryResource.adaptTo(Content.class);
-      } else {
-        Node directoryNode = directoryResource.adaptTo(Node.class);
-        NodeIterator nodeIter = directoryNode.getNodes();
-        while (nodeIter.hasNext()) {
-          Node child = nodeIter.nextNode();
-          write.key(child.getName());
+      Content directory = directoryResource.adaptTo(Content.class);
+      if (directory != null) {
+        ContentManager cm = directoryResource.adaptTo(ContentManager.class);
+        Iterator<Content> children = cm.listChildren(directoryResource.getPath());
+        while (children.hasNext()) {
+          Content child = children.next();
+          write.key(PathUtils.lastElement(child.getPath()));
           write.object();
           ExtendedJSONWriter.writeNodeContentsToWriter(write, child);
           write.key("content");
-          writeOneTaggedItemForTags(request, getTagsForDirectoryBranch(child), write);
+          writeOneTaggedItemForTags(request, getTagsForDirectoryBranch(child, cm, request), write);
           write.endObject();
         }
       }
       write.endObject();
     } catch (Exception e) {
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+    }
+  }
+
+  private List<String> getTagsForDirectoryBranch(Content branch, ContentManager cm,
+      SlingHttpServletRequest request) throws SolrSearchException {
+    String queryString = "path:" + ClientUtils.escapeQueryChars(branch.getPath())
+        + " AND resourceType:" + ClientUtils.escapeQueryChars(RT_SAKAI_TAG);
+    ArrayList<String> rv = new ArrayList<String>();
+
+    Query solrQuery = new Query(queryString, ImmutableMap.<String, Object>of());
+    SolrSearchResultSet rs = solrSearchServiceFactory.getSearchResultSet(request, solrQuery);
+    Iterator<Result> results = rs.getResultSetIterator();
+    while (results.hasNext()) {
+      Result result = results.next();
+      rv.add(String.valueOf(result.getFirstValue("tagname")));
+    }
+
+    return rv;
+  }
+
+  private void writeOneTaggedItemForTags(SlingHttpServletRequest request,
+      List<String> tags, JSONWriter write) throws JSONException, SolrSearchException {
+    if (tags == null || tags.size() == 0) {
+      write.object().endObject();
       return;
     }
 
-  }
-
-
-  private List<String> getTagsForDirectoryBranch(Node branch) throws RepositoryException {
-    List<String> rv = new ArrayList<String>();
-    if (branch.hasProperty("sling:resourceType") && "sakai/tag".equals(branch.getProperty("sling:resourceType").getString())) {
-      rv.add(branch.getIdentifier());
-    }
-
-    NodeIterator branchIterator = branch.getNodes();
-    while (branchIterator.hasNext()) {
-      Node branchChild = branchIterator.nextNode();
-      rv.addAll(getTagsForDirectoryBranch(branchChild));
-    }
-    return rv;
-  }
-  
-  private void writeOneTaggedItemForTags(SlingHttpServletRequest request,
-      List<String> tags, JSONWriter write) throws RepositoryException, SearchException, JSONException, SolrSearchException {
     // BL120 KERN-1617 Need to include Content tagged with tag uuid
     final StringBuilder sb = new StringBuilder();
     sb.append("tag:(");
@@ -207,8 +205,7 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
     final int random = (int) (Math.random() * 10000);
     String sortRandom = "random_" + String.valueOf(random) + " asc";
     final String queryString = sb.toString();
-    org.sakaiproject.nakamura.api.search.solr.Query solrQuery = new org.sakaiproject.nakamura.api.search.solr.Query(
-        queryString, ImmutableMap.of("sort", (Object) sortRandom));
+    Query solrQuery = new Query(queryString, ImmutableMap.of("sort", (Object) sortRandom));
     final SolrSearchBatchResultProcessor rp = new LiteFileSearchBatchResultProcessor(
         solrSearchServiceFactory, profileService);
     final SolrSearchResultSet srs = rp.getSearchResultSet(request, solrQuery);
@@ -216,8 +213,7 @@ public class DirectoryTagFeedServlet extends SlingSafeMethodsServlet {
       rp.writeResults(request, write, selectOneResult(srs.getResultSetIterator()));
     } else {
       // write an empty result
-      write.object();
-      write.endObject();
+      write.object().endObject();
     }
   }
 

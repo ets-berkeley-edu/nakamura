@@ -24,7 +24,6 @@ import static org.mockito.Mockito.withSettings;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -128,12 +127,8 @@ public class SparseTagOperationTest {
       when(resource.adaptTo(Content.class)).thenReturn(content);
       when(request.getResource()).thenReturn(resource);
       when(request.getResourceResolver()).thenReturn(resolver);
-      RequestParameter keyParam = mock(RequestParameter.class);
-      when(keyParam.getString()).thenReturn("/tags/foo");
-      when(request.getRequestParameter("key")).thenReturn(keyParam);
-      RequestParameter opParam = mock(RequestParameter.class);
-      when(opParam.getString()).thenReturn("tag");
-      when(request.getRequestParameter(":operation")).thenReturn(opParam);
+      when(request.getParameter("key")).thenReturn("/tags/foo");
+      when(request.getParameter(":operation")).thenReturn("tag");
       when(request.getRemoteUser()).thenReturn("john");
 
       operation.doRun(request, response, contentManager, null, "/bla/bla");
@@ -175,12 +170,8 @@ public class SparseTagOperationTest {
         when(resource.adaptTo(Content.class)).thenReturn(content);
         when(request.getResource()).thenReturn(resource);
         when(request.getResourceResolver()).thenReturn(resolver);
-        RequestParameter keyParam = mock(RequestParameter.class);
-        when(keyParam.getString()).thenReturn("/tags/oldtag");
-        when(request.getRequestParameter("key")).thenReturn(keyParam);
-        RequestParameter opParam = mock(RequestParameter.class);
-        when(opParam.getString()).thenReturn("tag");
-        when(request.getRequestParameter(":operation")).thenReturn(opParam);
+        when(request.getParameter("key")).thenReturn("/tags/oldtag");
+        when(request.getParameter(":operation")).thenReturn("tag");
         when(request.getRemoteUser()).thenReturn("john");
 
         operation.doRun(request, response, contentManager, null, "/bla/bla");

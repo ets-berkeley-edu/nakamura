@@ -17,17 +17,24 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
+import static org.sakaiproject.nakamura.api.user.UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.api.user.UserConstants.USER_PROFILE_RESOURCE_TYPE;
+
+import java.util.List;
+import java.util.Set;
+
 import com.google.common.collect.Sets;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -36,7 +43,9 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.files.TagUtils;
+import org.sakaiproject.nakamura.api.lite.ClientPoolException;
+import org.sakaiproject.nakamura.api.lite.Repository;
 import org.sakaiproject.nakamura.api.lite.Session;
 import org.sakaiproject.nakamura.api.lite.StorageClientException;
 import org.sakaiproject.nakamura.api.lite.StorageClientUtils;
@@ -51,8 +60,6 @@ import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -75,7 +82,8 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteTagOperation.class);
 
-  private static final long serialVersionUID = -7724827744698056843L;
+  @Reference
+  private Repository repository;
 
   /**
    * {@inheritDoc}
@@ -99,18 +107,15 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
     }
 
     // Check if the uuid is in the request.
-    RequestParameter key = request.getRequestParameter("key");
-    if (key == null || "".equals(key.getString())) {
+    String key = request.getParameter("key");
+    if (StringUtils.isBlank(key)) {
       LOGGER.warn ("attempt to delete tag without key");
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "Missing parameter: key");
       return;
     }
 
-    Resource resource = request.getResource();
-    Content content = resource.adaptTo(Content.class),
-        tag;
-
+    Content content = request.getResource().adaptTo(Content.class);
     if (content == null) {
       LOGGER.warn ("attempt to delete a tag on a null resource");
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
@@ -118,22 +123,22 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
       return;
     }
 
-
     // Grab the tagNode.
-    tag = contentManager.get(key.toString());
+    Content tag = contentManager.get(key);
     if (tag == null) {
-      LOGGER.warn ("attempted to delete tag {} which does not exist", key.toString());
+      LOGGER.warn ("attempted to delete tag {} which does not exist", key);
       response.setStatus(HttpServletResponse.SC_NOT_FOUND, "Provided key not found.");
       return;
     }
-    if (!FileUtils.isTag(tag)) {
-      LOGGER.warn ("{} is not a tag and so cannot be deleted via DeleteTagOperation", key.toString());
+    if (!TagUtils.isTag(tag)) {
+      LOGGER.warn ("{} is not a tag and so cannot be deleted via DeleteTagOperation", key);
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "Provided key doesn't point to a tag.");
       return;
     }
 
-    String tagName = (String)tag.getProperty(SAKAI_TAG_NAME);
+    // make sure we're trying to delete a tag that exists on the content
+    String tagName = (String) tag.getProperty(SAKAI_TAG_NAME);
     String[] existingTags = (String[]) content.getProperty(SAKAI_TAGS);
     boolean tagged = false;
 
@@ -144,15 +149,14 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
       }
     }
 
-    if (tagged)
-    {
+    if (tagged) {
       LOGGER.debug ("deleting tag {} from {}", new String[] {tagName, content.getPath()});
-      FileUtils.deleteTag(contentManager, content, tagName);
+      TagUtils.deleteTag(contentManager, content, tagName);
       // keep authz in sync with authprofile
       final AuthorizableManager authManager = session.getAuthorizableManager();
-      final String resourceType = (String) content.getProperty("sling:resourceType");
-      final boolean isProfile = "sakai/user-profile".equals(resourceType)
-              || "sakai/group-profile".equals(resourceType);
+      final String resourceType = (String) content.getProperty(SLING_RESOURCE_TYPE_PROPERTY);
+      final boolean isProfile = USER_PROFILE_RESOURCE_TYPE.equals(resourceType)
+              || GROUP_PROFILE_RESOURCE_TYPE.equals(resourceType);
       // If we're remove a tag on an authprofile, remove the property here
       if (isProfile) {
         final String azId = PathUtils.getAuthorizableId(content.getPath());
@@ -167,6 +171,24 @@ public class DeleteTagOperation extends AbstractSparsePostOperation {
               nameSet.toArray(new String[nameSet.size()]));
 
           authManager.updateAuthorizable(authorizable);
+        }
+      } else {
+        Session adminSession = null;
+        try {
+          adminSession = repository.loginAdministrative();
+          ContentManager cm = adminSession.getContentManager();
+          Content adminTag = cm.get(key);
+          String[] tagNames = StorageClientUtils.nonNullStringArray((String[]) content
+              .getProperty(SAKAI_TAGS));
+          TagUtils.bumpTagCounts(adminTag, tagNames, false, false, cm);
+        } finally {
+          if (adminSession != null) {
+            try {
+              adminSession.logout();
+            } catch (ClientPoolException e) {
+              // noop; nothing to do
+            }
+          }
         }
       }
     }

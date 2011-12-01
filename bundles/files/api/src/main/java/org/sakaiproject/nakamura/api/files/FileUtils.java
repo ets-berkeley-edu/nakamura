@@ -20,12 +20,7 @@ package org.sakaiproject.nakamura.api.files;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -52,9 +47,6 @@ import org.slf4j.LoggerFactory;
 import java.security.AccessControlException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Map;
-import java.util.Set;
-
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
@@ -391,83 +383,6 @@ public class FileUtils {
     } catch (StorageClientException e) {
       return false;
     }
-  }
-
-  /**
-   * Check if a node is a proper sakai tag.
-   *
-   * @param node
-   *          The node to check if it is a tag.
-   * @return true if the node is a tag, false if it is not.
-   * @throws RepositoryException
-   */
-  public static boolean isTag(Content node) {
-    if (node != null && node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
-      return true;
-    }
-    return false;
-  }
-
-  public static boolean addTag(ContentManager contentManager, Content contentNode,
-      Content tagNode)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException, RepositoryException {
-    if (contentNode == null) {
-      throw new RuntimeException(
-          "Cant tag non existant nodes, sorry, both must exist prior to tagging. File:"
-              + contentNode);
-    }
-    String tagName = String.valueOf(tagNode.getProperty(SAKAI_TAG_NAME));
-    return addTag(contentManager, contentNode, StringUtils.defaultIfBlank(tagName, null));
-  }
-
-  private static boolean addTag(ContentManager contentManager, Content content, String tag)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException {
-    boolean sendEvent = false;
-    if (tag != null) {
-      Map<String, Object> properties = content.getProperties();
-      Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-          .get(SAKAI_TAGS)));
-      if (!nameSet.contains(tag)) {
-        nameSet.add(tag);
-        content.setProperty(SAKAI_TAGS,
-            nameSet.toArray(new String[nameSet.size()]));
-        sendEvent = true;
-      }
-
-      if (sendEvent) {
-        contentManager.update(content);
-      }
-    }
-    return sendEvent;
-  }
-
-  public static boolean deleteTag(ContentManager contentManager, Content content,
-      String tag)
-      throws org.sakaiproject.nakamura.api.lite.accesscontrol.AccessDeniedException,
-      StorageClientException {
-
-      if (StringUtils.isBlank(tag))
-        return false;
-
-    boolean updated = false;
-    Map<String, Object> properties = content.getProperties();
-    Set<String> nameSet = Sets.newHashSet(StorageClientUtils.nonNullStringArray((String[]) properties
-        .get(SAKAI_TAGS)));
-    if (nameSet.contains(tag)) {
-      nameSet.remove(tag);
-      content.setProperty(SAKAI_TAGS,
-          nameSet.toArray(new String[nameSet.size()]));
-      updated = true;
-    }
-    if (updated) {
-      contentManager.update(content);
-      return true;
-    }
-    return false;
   }
 
   /**

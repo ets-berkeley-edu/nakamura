@@ -8,8 +8,8 @@
       "facet.mincount" : 1
   },
   "sakai:query-template-defaults": {
-    "sortOn": "score",
-    "sortOrder": "desc",
+    "sortOn": "general",
+    "sortOrder": "asc",
     "_categoryAnd": "",
     "_tags": ""
   },

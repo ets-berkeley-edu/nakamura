@@ -79,6 +79,9 @@ public class SparseUpgradeServlet extends SlingAllMethodsServlet {
   @Reference
   private MigrateContentService migrationService;
 
+  @Reference
+  private TagMigrator tagMigrator;
+
   @Override
   protected void doPost(SlingHttpServletRequest request, final SlingHttpServletResponse response) throws ServletException, IOException {
     try {
@@ -117,6 +120,9 @@ public class SparseUpgradeServlet extends SlingAllMethodsServlet {
 
       // do the actual migration
       this.migrationService.migrate(dryRun, limit, reindexAll, getFeedback(response));
+
+      // migrate tags from JCR to Sparse
+      this.tagMigrator.migrate(request, response, dryRun, reindexAll);
 
       // reindex solr if necessary
       if (reindexAll && !dryRun) {
@@ -162,7 +168,7 @@ public class SparseUpgradeServlet extends SlingAllMethodsServlet {
     session.getAuthorizableManager().triggerRefreshAll();
   }
 
-  private void writeToResponse(String msg, SlingHttpServletResponse response) {
+  static void writeToResponse(String msg, SlingHttpServletResponse response) {
     try {
       response.getWriter().write(msg + "\n");
       response.getWriter().flush(); // so the client sees updates
