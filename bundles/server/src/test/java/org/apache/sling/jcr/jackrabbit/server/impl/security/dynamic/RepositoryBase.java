@@ -34,7 +34,7 @@ import org.sakaiproject.nakamura.lite.ConfigurationImpl;
 import org.sakaiproject.nakamura.lite.LoggingStorageListener;
 import org.sakaiproject.nakamura.lite.authorizable.AuthorizableActivator;
 import org.sakaiproject.nakamura.lite.jackrabbit.SparseRepositoryHolder;
-import org.sakaiproject.nakamura.lite.storage.StorageClient;
+import org.sakaiproject.nakamura.lite.storage.spi.StorageClient;
 import org.sakaiproject.nakamura.lite.storage.mem.MemoryStorageClientPool;
 
 import java.io.File;

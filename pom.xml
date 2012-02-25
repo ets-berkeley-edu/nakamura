@@ -83,7 +83,6 @@
         <module>bundles/upgrade</module>
         <module>bundles/lom</module>
         <module>bundles/content-packaging</module>
-        <module>bundles/postgresqlwrapper</module>
         <module>testscripts</module>
       </modules>
     </profile>
@@ -1168,22 +1167,15 @@
       <dependency>
         <groupId>org.sakaiproject.nakamura</groupId>
         <artifactId>org.sakaiproject.nakamura.core</artifactId>
-        <version>1.3</version>
+        <version>1.5-20120223</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.sakaiproject.nakamura</groupId>
         <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-        <version>1.3</version>
+        <version>1.4</version>
         <scope>provided</scope>
       </dependency>
-
-      <dependency>
-        <groupId>org.sakaiproject.nakamura</groupId>
-        <artifactId>org.sakaiproject.nakamura.postgresqlwrapper</artifactId>
-        <version>1.2-SNAPSHOT</version>
-      </dependency>
-
     </dependencies>
   </dependencyManagement>
 </project>

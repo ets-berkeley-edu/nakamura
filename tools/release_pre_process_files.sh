@@ -50,5 +50,5 @@ for file in $otherpoms
   done
 
 
-git commit -m "switching from SNAPSHOT to full version in config files"
+git commit -m "release_pre_process: Moving config files from $cversion-SNAPSHOT to $cversion"
 

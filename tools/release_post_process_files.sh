@@ -35,7 +35,7 @@ function restore {
     git add $1
 }
 
-echo "Moving from $cversion to $nversion-SNAPSHOT"
+echo "Moving config files from $cversion to $nversion-SNAPSHOT"
 ux_tag_replace app/pom.xml
 artifact_version_replace org.sakaiproject.nakamura.jetty-config app/pom.xml
 simple_replace tools/version
@@ -50,4 +50,4 @@ for file in $otherpoms
   done
 
 
-git commit -m "switching from version to next SNAPSHOT in config files"
+git commit -m "release_post_process: Moving config files from $cversion to $nversion-SNAPSHOT"

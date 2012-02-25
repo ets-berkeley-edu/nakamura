@@ -236,11 +236,6 @@ KERN-1187
         -->
 
         <bundle>
-            <groupId>org.sakaiproject.nakamura</groupId>
-            <artifactId>org.sakaiproject.nakamura.postgresqlwrapper</artifactId>
-            <version>1.2-SNAPSHOT</version>
-        </bundle>
-        <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.log</artifactId>
             <version>2.1.2</version>
@@ -378,10 +373,64 @@ KERN-1187
 
 <!-- Start of Sakai Bundles, add new Sakai bundles below this point at the appropriate run level  -->
    <startLevel level="1">
+
+    <!-- begin database SPI (Service Provider Interface) bundles for sparsemapcontent -->
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.derby-driver</artifactId>
+      <version>10.6.2.1-1.5-20120223</version>
+    </bundle>
+    <!-- If you want to use a database other than Derby as the backing data store, uncomment
+        one of the following driver blocks and comment out the derby-driver block above,
+        then rebuild the app bundle -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.postgres-driver</artifactId>
+       <version>9.0-801-1.5-20120223</version>
+    </bundle>
+    -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.cassandra-driver</artifactId>
+       <version>0.6.5-0.5.0-0.1-20120223</version>
+    </bundle>
+    -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.hbase-driver</artifactId>
+       <version>0.90.3-0.1-20120223</version>
+    </bundle>
+    -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.mongo-driver</artifactId>
+       <version>2.7.2-0.1-20120223</version>
+    </bundle>
+    -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.mysql-driver</artifactId>
+       <version>5.1.13-1.5-20120223</version>
+    </bundle>
+    -->
+    <!--
+    <bundle>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.oracle-driver</artifactId>
+       <version>1.4-1.5-20120223</version>
+    </bundle>
+    -->
+    <!-- end of database SPI (Service Provider Interface) bundles for sparsemapcontent -->
+
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.core</artifactId>
-      <version>1.3</version>
+      <version>1.5-20120223</version>
     </bundle>
     <bundle>
       <groupId>com.googlecode.guava-osgi</groupId>
@@ -514,7 +563,7 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.solr</artifactId>
-      <version>1.3</version>
+      <version>1.4</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
