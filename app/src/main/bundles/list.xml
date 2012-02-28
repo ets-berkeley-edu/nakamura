@@ -430,7 +430,7 @@ KERN-1187
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.core</artifactId>
-      <version>1.5-20120223</version>
+      <version>1.5-20120228</version>
     </bundle>
     <bundle>
       <groupId>com.googlecode.guava-osgi</groupId>
