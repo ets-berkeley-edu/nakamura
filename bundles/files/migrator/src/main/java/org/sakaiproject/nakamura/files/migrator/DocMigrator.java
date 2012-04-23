@@ -91,7 +91,7 @@ public class DocMigrator implements FileMigrationService {
     try {
       return !(content == null || isNotSakaiDoc(content) || schemaVersionIsCurrent(content) || contentHasUpToDateStructure(content));
     } catch (SakaiDocMigrationException e) {
-      LOGGER.error("Could not determine requiresMigration with content "+content.getPath(), e);
+      LOGGER.error("Could not determine requiresMigration with content {}", content.getPath());
       throw new RuntimeException("Could not determine requiresMigration with content " + content.getPath());
     }
   }
@@ -164,8 +164,12 @@ public class DocMigrator implements FileMigrationService {
     Session adminSession = null;
     try {
       adminSession = repository.loginAdministrative();
-      JSONObject newPageStructure = createNewPageStructure(new JSONObject(
-          getStructure0(content)), new JSONObject(stringWriter.toString()));
+      ContentManager adminContentManager = adminSession.getContentManager();
+      
+      // pull the content JSON using an admin session
+      Content adminContent = adminContentManager.get(content.getPath());
+      ExtendedJSONWriter.writeContentTreeToWriter(stringJsonWriter, adminContent, false, -1);
+      JSONObject newPageStructure = createNewPageStructure(new JSONObject(getStructure0(adminContent)), new JSONObject(stringWriter.toString()));
 
       JSONObject convertedStructure = (JSONObject) convertArraysToObjects(newPageStructure);
       validateStructure(convertedStructure);

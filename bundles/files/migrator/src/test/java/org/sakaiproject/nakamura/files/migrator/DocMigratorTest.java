@@ -354,4 +354,5 @@ public class DocMigratorTest extends Assert {
             new AclModification(AclModification.denyKey(currentUserId), Permissions.ALL
                 .getPermission(), Operation.OP_REPLACE) });
   }
+
 }
