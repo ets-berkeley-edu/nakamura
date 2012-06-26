@@ -73,9 +73,9 @@ public class DeleteOperation extends AbstractSparsePostOperation {
         //notify to reset content count
         Content node = resource.adaptTo(Content.class);
         Map<String, Object> properties = node.getProperties();
-        String[] managers = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-manager"));
-        String[] editors = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-editor"));
-        String[] viewers = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-viewer"));
+        String[] managers = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-manager"), new String[0]);
+        String[] editors = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-editor"), new String[0]);
+        String[] viewers = PropertiesUtil.toStringArray(properties.get("sakai:pooled-content-viewer"), new String[0]);
         Set<String> managerSet = Sets.newHashSet(managers);
         Set<String> editorSet = Sets.newHashSet(editors);
         Set<String> viewerSet = Sets.newHashSet(viewers);
