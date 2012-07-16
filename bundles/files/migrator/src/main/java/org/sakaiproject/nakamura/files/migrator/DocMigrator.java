@@ -19,7 +19,7 @@ package org.sakaiproject.nakamura.files.migrator;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-
+import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -115,6 +115,9 @@ public class DocMigrator implements FileMigrationService {
       String key = keysIterator.next();
       if (!key.startsWith("_")) {
         JSONObject structureItem = subtree.getJSONObject(key);
+        if (!structureItem.has("_ref") || StringUtils.isBlank(structureItem.getString("_ref"))) {
+          continue;
+        }
         String ref = structureItem.getString("_ref");
         if (!contentManager.exists(originalStructure.getPath() + "/" + ref + "/rows")) {
           return true;

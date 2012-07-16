@@ -66,6 +66,7 @@ import org.sakaiproject.nakamura.api.user.AuthorizableCountChanger;
 import org.sakaiproject.nakamura.api.user.BasicUserInfoService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.ServletUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,18 +264,16 @@ import javax.servlet.http.HttpServletResponse;
 
 
       boolean detailed = false;
-      boolean tidy = false;
       for (String selector : request.getRequestPathInfo().getSelectors()) {
         if ("detailed".equals(selector)) {
           detailed = true;
-        } else if ("tidy".equals(selector)) {
-          tidy = true;
+          break;
         }
       }
 
       // Loop over the sets and output it.
       ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
-      writer.setTidy(tidy);
+      writer.setTidy(ServletUtils.isTidy(request));
       writer.object();
       writer.key("managers");
       writer.array();
@@ -419,7 +418,10 @@ import javax.servlet.http.HttpServletResponse;
       // 2.
       addManagers.removeAll(managerSet);
       addEditors.removeAll(editorSet);
+      addEditors.removeAll(managerSet);
       addViewers.removeAll(viewerSet);
+      addViewers.removeAll(editorSet);
+      addViewers.removeAll(managerSet);
       
       // 3.
       removeManagers.retainAll(managerSet);
@@ -434,8 +436,7 @@ import javax.servlet.http.HttpServletResponse;
       }
       
       //Checking for non-managers
-      if (!accessControlManager.can(thisUser, Security.ZONE_CONTENT, pooledContent.getPath(), Permissions.CAN_WRITE) 
-          || !accessControlManager.can(thisUser, Security.ZONE_CONTENT, pooledContent.getPath(), Permissions.CAN_WRITE_ACL)) {
+      if (!accessControlManager.can(thisUser, Security.ZONE_CONTENT, pooledContent.getPath(), Permissions.CAN_WRITE)) {
         if (!addManagers.isEmpty()) {
           response.sendError(SC_FORBIDDEN, "Non-managers may not add managers to content.");
           return;
@@ -464,6 +465,7 @@ import javax.servlet.http.HttpServletResponse;
             Authorizable viewer = authorizableManager.findAuthorizable(name);
             if (viewer != null && !accessControlManager.can(thisUser, Security.ZONE_AUTHORIZABLES, name, Permissions.CAN_WRITE)) {
               response.sendError(SC_FORBIDDEN, "Non-managers may not remove any viewer other than themselves or a group which they manage.");
+              return;
             }
           }
         }

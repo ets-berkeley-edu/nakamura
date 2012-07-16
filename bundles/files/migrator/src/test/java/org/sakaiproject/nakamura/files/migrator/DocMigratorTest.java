@@ -355,4 +355,10 @@ public class DocMigratorTest extends Assert {
                 .getPermission(), Operation.OP_REPLACE) });
   }
 
+  @Test
+  public void testHandlesNoRefGracefully() throws Exception {
+    JSONObject groupHome = readJSONFromFile("GroupHomeDocstructure.json");
+    assertFalse(docMigrator.requiresMigration(groupHome, null, null));
+  }
+
 }
