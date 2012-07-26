@@ -150,22 +150,7 @@ public class SolrResultSetFactory implements ResultSetFactory {
         }
       }
 
-      // apply readers restrictions.
-      if (asAnon) {
-        queryOptions.put("readers", User.ANON_USER);
-      } else {
-        Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
-        if (!User.ADMIN_USER.equals(session.getUserId())) {
-          AuthorizableManager am = session.getAuthorizableManager();
-          Authorizable user = am.findAuthorizable(session.getUserId());
-          Set<String> readers = Sets.newHashSet();
-          for (Iterator<Group> gi = user.memberOf(am); gi.hasNext();) {
-            readers.add(gi.next().getId());
-          }
-          readers.add(session.getUserId());
-          queryOptions.put("readers", StringUtils.join(readers,","));
-        }
-      }
+      applyReadersRestrictions(request, asAnon, queryOptions);
 
       // filter out 'excluded' items. these are indexed because we do need to search for
       // some things on the server that the UI doesn't want (e.g. collection groups)
@@ -220,6 +205,25 @@ public class SolrResultSetFactory implements ResultSetFactory {
       throw new SolrSearchException(500, e.getMessage());
     } catch (SolrServerException e) {
         throw new SolrSearchException(500, e.getMessage());
+    }
+  }
+
+  protected void applyReadersRestrictions(SlingHttpServletRequest request, boolean asAnon,
+                                          Map<String, Object> queryOptions) throws StorageClientException, AccessDeniedException {
+    if (asAnon) {
+      queryOptions.put("readers", User.ANON_USER);
+    } else {
+      Session session = StorageClientUtils.adaptToSession(request.getResourceResolver().adaptTo(javax.jcr.Session.class));
+      if (!User.ADMIN_USER.equals(session.getUserId())) {
+        AuthorizableManager am = session.getAuthorizableManager();
+        Authorizable user = am.findAuthorizable(session.getUserId());
+        Set<String> readers = Sets.newHashSet();
+        for (Iterator<Group> gi = user.memberOf(am); gi.hasNext(); ) {
+          readers.add(gi.next().getId());
+        }
+        readers.add(session.getUserId());
+        queryOptions.put("readers", StringUtils.join(readers, ","));
+      }
     }
   }
 

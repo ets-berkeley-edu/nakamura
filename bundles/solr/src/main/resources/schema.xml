@@ -490,6 +490,8 @@
 
    <!-- sakai activity -->
    <field name="routes" type="string" indexed="true" stored="false" multiValued="true" />
+   <field name="timestamp" type="long" indexed="true" stored="false" />
+   <field name="activitysource" type="string" indexed="true" stored="true" multiValued="false" />
 
    <!-- sakai users -->
    <field name="name" type="text_ci" indexed="true" stored="true" termVectors="true" />
@@ -504,9 +506,6 @@
    <!-- sakai groups -->
    <field name="title" type="text" indexed="true" stored="true" termVectors="true" />
    <field name="description" type="text" indexed="true" stored="true" />
-
-   <!-- sakai/activity -->
-   <field name="timestamp" type="long" indexed="true" stored="false" />
 
    <!-- sakai/contact -->
    <field name="state" type="string" indexed="true" stored="true" />
