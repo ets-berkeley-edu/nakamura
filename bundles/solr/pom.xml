@@ -44,6 +44,10 @@
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Export-Package>
 							org.sakaiproject.nakamura.api.solr.*,
+							org.apache.lucene.analysis,
+							org.apache.lucene.index;-split-package:=merge-first,
+							org.apache.lucene.search;-split-package:=merge-first,
+							org.apache.lucene.util,
 							org.apache.lucene.queryparser.classic;version="4.0",
 							org.apache.solr.client.solrj,
 							org.apache.solr.client.solrj.response,
