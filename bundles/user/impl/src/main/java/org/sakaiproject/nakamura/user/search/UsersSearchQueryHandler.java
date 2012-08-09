@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class UsersSearchQueryHandler extends DomainObjectSearchQueryHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(UsersSearchQueryHandler.class);
   private static final String Q_FORMAT =
-      "name:(%s) OR firstName:(%<s) OR lastName:(%<s) OR email:(%<s) OR ngram:(%<s) OR edgengram:(%<s) OR group:(%<s) OR tag:(%<s)";
+      "name:(%s) OR firstName:(%<s) OR lastName:(%<s) OR email:(%<s) OR ngram:(%<s) OR edgengram:(%<s)";
   private static Map<String, Object> FULLPROFILE_QUERY_OPTIONS_MAP = ImmutableMap.<String, Object> of(
       GroupParams.GROUP, Boolean.TRUE,
       GroupParams.GROUP_FIELD, "returnpath",
